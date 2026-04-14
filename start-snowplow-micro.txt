@@ -11,7 +11,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "Starting Snowplow Micro on http://0.0.0.0:9090"
-echo "Schemas: $(pwd)/iglu-schemas"
+echo "Schemas: $SCRIPT_DIR/schemas"
 echo ""
 echo "Useful endpoints once running:"
 echo "  GET  http://0.0.0.0:9090/micro/all   — all received events"
@@ -23,5 +23,5 @@ echo ""
 docker run \
   --rm \
   -p 9090:9090 \
-  --mount type=bind,source="$(pwd)/iglu-schemas",destination=/config/iglu-client-embedded/schemas \
+  --mount type=bind,source="$SCRIPT_DIR/schemas",destination=/config/iglu-client-embedded/schemas \
   snowplow/snowplow-micro:4.2.0

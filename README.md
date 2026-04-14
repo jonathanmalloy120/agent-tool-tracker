@@ -67,15 +67,15 @@ bash install.sh /path/to/project
 
 The `schemas/` directory contains self-describing JSON schemas for both events under the vendor path `com.anthropic.claude_code`. Deploy them so your collector can validate incoming events.
 
-**Snowplow Micro (local dev) — mount the schemas directory:**
+**Snowplow Micro (local dev):**
+
+The schemas live in the package and are mounted directly from there — no need to copy them per-project. After the quick install, run:
 
 ```bash
-docker run -p 9090:9090 \
-  -v "$(pwd)/schemas:/config/iglu-client-embedded/schemas" \
-  snowplow/snowplow-micro:latest
+bash ~/.claude/agent-tracking-hooks/start-snowplow-micro.txt
 ```
 
-See `start-snowplow-micro.txt` for the full Docker command used in development.
+This mounts `~/.claude/agent-tracking-hooks/schemas/` into Micro and starts the collector on `http://0.0.0.0:9090`.
 
 **Static Iglu registry** — copy the `schemas/` tree into your registry repo at the same path structure.
 
