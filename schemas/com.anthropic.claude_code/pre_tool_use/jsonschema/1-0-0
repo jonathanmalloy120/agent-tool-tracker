@@ -38,7 +38,7 @@
     "transcript_path": {
       "type": "string",
       "description": "Path to the session transcript JSONL file."
-    },
+    }
   },
   "required": ["timestamp", "session_id", "tool_name", "tool_input_json", "cwd", "transcript_path"],
   "additionalProperties": false
