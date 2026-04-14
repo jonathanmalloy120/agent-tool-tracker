@@ -15,15 +15,20 @@
 # Dependencies: jq, curl (required); python3 (optional, for ms timestamps + transcript parsing)
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_FILE="$SCRIPT_DIR/snowplow-config.env"
 
 # Read Claude Code hook payload from stdin first so it's available for warnings
 INPUT=$(cat)
 
-# Load collector config
-if [ -f "$CONFIG_FILE" ]; then
+# Load collector config — project-level takes priority over global
+PROJECT_CONFIG="${CLAUDE_PROJECT_DIR:-}/.claude/hooks/snowplow-config.env"
+GLOBAL_CONFIG="$SCRIPT_DIR/snowplow-config.env"
+
+if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && [ -f "$PROJECT_CONFIG" ]; then
   # shellcheck source=/dev/null
-  source "$CONFIG_FILE"
+  source "$PROJECT_CONFIG"
+elif [ -f "$GLOBAL_CONFIG" ]; then
+  # shellcheck source=/dev/null
+  source "$GLOBAL_CONFIG"
 fi
 
 # No-op if not configured
