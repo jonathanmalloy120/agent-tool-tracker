@@ -19,6 +19,20 @@ echo "  Target  : $TARGET_DIR"
 echo ""
 
 # ---------------------------------------------------------------------------
+# 0. Dependency check
+# ---------------------------------------------------------------------------
+MISSING_DEPS=""
+command -v jq   >/dev/null 2>&1 || MISSING_DEPS="jq"
+command -v curl >/dev/null 2>&1 || MISSING_DEPS="${MISSING_DEPS:+$MISSING_DEPS, }curl"
+
+if [ -n "$MISSING_DEPS" ]; then
+  echo "WARNING: $MISSING_DEPS not found — hooks will not send events until installed."
+  echo "  Install: brew install $MISSING_DEPS   (macOS)"
+  echo "           apt install $MISSING_DEPS    (Debian/Ubuntu)"
+  echo ""
+fi
+
+# ---------------------------------------------------------------------------
 # 1. Copy hook scripts
 # ---------------------------------------------------------------------------
 mkdir -p "$HOOKS_DIR"

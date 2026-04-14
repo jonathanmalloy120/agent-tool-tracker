@@ -14,6 +14,9 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="$SCRIPT_DIR/snowplow-config.env"
 
+# Read Claude Code hook payload from stdin first so it's available for warnings
+INPUT=$(cat)
+
 # Load collector config
 if [ -f "$CONFIG_FILE" ]; then
   # shellcheck source=/dev/null
@@ -25,13 +28,20 @@ if [ -z "${SNOWPLOW_COLLECTOR_URL:-}" ]; then
   exit 0
 fi
 
-# No-op if required tools are missing
+# Warn once per session if required tools are missing, then no-op
 if ! command -v jq >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then
+  # Extract session_id without jq (grep is always available)
+  SID=$(printf '%s' "$INPUT" | grep -o '"session_id":"[^"]*"' | cut -d'"' -f4)
+  WARN_SENTINEL="/tmp/claude_hook_nodeps_${SID:-unknown}"
+  if [ ! -f "$WARN_SENTINEL" ]; then
+    touch "$WARN_SENTINEL"
+    MISSING=""
+    command -v jq   >/dev/null 2>&1 || MISSING="jq"
+    command -v curl >/dev/null 2>&1 || MISSING="${MISSING:+$MISSING, }curl"
+    printf 'agent-tool-tracker: %s not found — Snowplow events disabled. Install with: brew install %s\n' "$MISSING" "$MISSING" >&2
+  fi
   exit 0
 fi
-
-# Read Claude Code hook payload from stdin
-INPUT=$(cat)
 
 # --- Extract fields from hook payload ---
 SESSION_ID=$(echo "$INPUT"    | jq -r '.session_id    // ""')
