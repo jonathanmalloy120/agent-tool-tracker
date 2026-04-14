@@ -108,7 +108,8 @@ if [ -f "$SETTINGS_FILE" ]; then
   fi
 
   # Deep merge: preserve all existing keys and existing hook arrays,
-  # append new hook entries, deduplicate by command string.
+  # append new hook entries, deduplicate by command string — new entry wins
+  # over old so reinstalls pick up changes (e.g. removing async: true).
   NEW_SETTINGS=$(jq -s '
     .[0] as $e | .[1].hooks as $n |
     $e |
@@ -116,15 +117,15 @@ if [ -f "$SETTINGS_FILE" ]; then
       ($e.hooks // {}) + {
         PreToolUse: (
           (($e.hooks.PreToolUse // []) + ($n.PreToolUse // []))
-          | unique_by(.hooks[0].command)
+          | reverse | unique_by(.hooks[0].command) | reverse
         ),
         PostToolUse: (
           (($e.hooks.PostToolUse // []) + ($n.PostToolUse // []))
-          | unique_by(.hooks[0].command)
+          | reverse | unique_by(.hooks[0].command) | reverse
         ),
         PostToolUseFailure: (
           (($e.hooks.PostToolUseFailure // []) + ($n.PostToolUseFailure // []))
-          | unique_by(.hooks[0].command)
+          | reverse | unique_by(.hooks[0].command) | reverse
         )
       }
     )
