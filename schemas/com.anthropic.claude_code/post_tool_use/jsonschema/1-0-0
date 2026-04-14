@@ -1,0 +1,82 @@
+{
+  "$schema": "http://iglucentral.com/schemas/com.snowplowanalytics.self-desc/schema/jsonschema/1-0-0#",
+  "description": "Fired by the Claude Code PostToolUse and PostToolUseFailure hooks after a tool invocation completes. Includes success flag, truncated output, duration calculated from the paired pre_tool_use event, and token counts read from the session transcript.",
+  "self": {
+    "vendor": "com.anthropic.claude_code",
+    "name": "post_tool_use",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of when the hook fired."
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Claude Code session identifier."
+    },
+    "tool_use_id": {
+      "type": "string",
+      "description": "Unique identifier for this individual tool invocation, paired with pre_tool_use."
+    },
+    "tool_name": {
+      "type": "string",
+      "description": "Name of the tool that was invoked (e.g. Write, Bash, Grep)."
+    },
+    "tool_input_json": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "JSON-stringified tool input with large content fields removed and truncated to 500 characters."
+    },
+    "cwd": {
+      "type": "string",
+      "description": "Working directory of the Claude Code session at time of invocation."
+    },
+    "transcript_path": {
+      "type": "string",
+      "description": "Path to the session transcript JSONL file."
+    },
+    "success": {
+      "type": "boolean",
+      "description": "True for PostToolUse (tool succeeded), false for PostToolUseFailure."
+    },
+    "tool_output_json": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "JSON-stringified tool output, truncated to 1000 characters."
+    },
+    "tool_output_length": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Original byte length of the tool output before truncation."
+    },
+    "available_tools": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of tool names available to Claude in this session."
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Milliseconds elapsed between the paired pre_tool_use hook firing and this hook firing."
+    },
+    "input_tokens": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Input token count from the most recent usage entry in the session transcript."
+    },
+    "output_tokens": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Output token count from the most recent usage entry in the session transcript."
+    }
+  },
+  "required": [
+    "timestamp", "session_id", "tool_name", "tool_input_json",
+    "cwd", "transcript_path", "success", "tool_output_json", "tool_output_length"
+  ],
+  "additionalProperties": false
+}

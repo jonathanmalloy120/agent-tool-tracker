@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Start Snowplow Micro on port 9090 with local schemas mounted.
+# Run from the Dow_Jones project root:
+#
+#   bash start-snowplow-micro.txt
+#
+# Requires: Docker
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "Starting Snowplow Micro on http://0.0.0.0:9090"
+echo "Schemas: $(pwd)/iglu-schemas"
+echo ""
+echo "Useful endpoints once running:"
+echo "  GET  http://0.0.0.0:9090/micro/all   — all received events"
+echo "  GET  http://0.0.0.0:9090/micro/good  — valid events"
+echo "  GET  http://0.0.0.0:9090/micro/bad   — invalid events (schema mismatches)"
+echo "  POST http://0.0.0.0:9090/micro/reset — reset event counters"
+echo ""
+
+docker run \
+  --rm \
+  -p 9090:9090 \
+  --mount type=bind,source="$(pwd)/iglu-schemas",destination=/config/iglu-client-embedded/schemas \
+  snowplow/snowplow-micro:4.2.0

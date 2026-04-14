@@ -1,0 +1,50 @@
+{
+  "$schema": "http://iglucentral.com/schemas/com.snowplowanalytics.self-desc/schema/jsonschema/1-0-0#",
+  "description": "Fired by the Claude Code PreToolUse hook immediately before a tool is invoked. Captures identifying metadata about the tool call; large content fields (file body, edit strings) are stripped before sending.",
+  "self": {
+    "vendor": "com.anthropic.claude_code",
+    "name": "pre_tool_use",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of when the hook fired."
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Claude Code session identifier."
+    },
+    "tool_use_id": {
+      "type": "string",
+      "description": "Unique identifier for this individual tool invocation."
+    },
+    "tool_name": {
+      "type": "string",
+      "description": "Name of the tool being invoked (e.g. Write, Bash, Grep)."
+    },
+    "tool_input_json": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "JSON-stringified tool input with large content fields removed and truncated to 500 characters."
+    },
+    "cwd": {
+      "type": "string",
+      "description": "Working directory of the Claude Code session at time of invocation."
+    },
+    "transcript_path": {
+      "type": "string",
+      "description": "Path to the session transcript JSONL file."
+    },
+    "available_tools": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of tool names available to Claude in this session."
+    }
+  },
+  "required": ["timestamp", "session_id", "tool_name", "tool_input_json", "cwd", "transcript_path"],
+  "additionalProperties": false
+}

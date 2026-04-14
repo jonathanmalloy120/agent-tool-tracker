@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Local Claude Code dev config (machine-specific)
+.claude/
+
+# Root-level settings.json is for local development only;
+# hooks/settings.json.example is the distributable reference
+settings.json
