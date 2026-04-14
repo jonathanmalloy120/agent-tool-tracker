@@ -8,14 +8,34 @@ Snowplow event tracking hooks for [Claude Code](https://claude.ai/code). Fires a
 
 ```bash
 git clone https://github.com/jonathanmalloy120/agent-tool-tracker.git ~/.claude/agent-tracking-hooks
-bash ~/.claude/agent-tracking-hooks/install.sh
+bash ~/.claude/agent-tracking-hooks/install.sh --global
 ```
 
-Then edit `.claude/hooks/snowplow-config.env` in your project and set `SNOWPLOW_COLLECTOR_URL`. Restart Claude Code to load the hooks.
+`--global` registers the hooks in `~/.claude/settings.json` so they run automatically in **every Claude Code project** on your machine — no per-project setup needed.
+
+Then set your collector URL:
+
+```bash
+# Edit and set SNOWPLOW_COLLECTOR_URL
+nano ~/.claude/agent-tracking-hooks/hooks/snowplow-config.env
+```
+
+Restart Claude Code to load the hooks.
+
+### Per-project install
+
+To install into a single project instead of globally:
+
+```bash
+bash ~/.claude/agent-tracking-hooks/install.sh              # current directory
+bash ~/.claude/agent-tracking-hooks/install.sh /path/to/project
+```
+
+Per-project install copies the hook scripts into `.claude/hooks/` and registers them in the project's `.claude/settings.json`. Useful if you want different collector URLs per project or don't want tracking on every project.
 
 ### `/init_with_tracking` slash command
 
-The installer also registers an `/init_with_tracking` global slash command. Run it inside any Claude Code project to initialise the project (creates `CLAUDE.md`) and set up tracking hooks in one step.
+Both install modes register an `/init_with_tracking` global slash command. Run it inside any Claude Code project to initialise the project (creates `CLAUDE.md`) and set up tracking hooks in one step.
 
 ---
 
@@ -39,7 +59,7 @@ Claude Code's hook system lets you attach shell commands to tool lifecycle event
 | `PostToolUse` | `post-tool-use.sh` | After every successful tool call |
 | `PostToolUseFailure` | `post-tool-use.sh` | After every failed tool call |
 
-Both scripts run synchronously inside the hook process. Claude Code's `async: true` setting handles non-blocking execution — Claude Code fires the hook and moves on immediately without waiting for it to finish. The curl runs to completion inside the hook process, which avoids the background-process-kill issue that `&` causes on macOS when the parent exits.
+Both scripts run synchronously inside the hook process. Claude Code's `async: true` setting handles non-blocking execution for the post hook — Claude Code fires it and moves on immediately without waiting for it to finish.
 
 The pre-hook writes a start timestamp to a temp file; the post-hook reads it to calculate `duration_ms`, then deletes it.
 
@@ -47,17 +67,28 @@ The pre-hook writes a start timestamp to a temp file; the post-hook reads it to 
 
 ## What `install.sh` does
 
-- Copies `pre-tool-use.sh`, `post-tool-use.sh`, and `available-tools.json` into `.claude/hooks/`
+### Global install (`--global`)
+
+- Registers hook scripts (from the cloned package directory) in `~/.claude/settings.json` using their absolute paths
+- Creates `~/.claude/agent-tracking-hooks/hooks/snowplow-config.env` from the example template (skips if already present)
+- Copies `commands/init_with_tracking.md` to `~/.claude/commands/` (skips if already present)
+
+### Project install (no flag)
+
+- Copies `pre-tool-use.sh` and `post-tool-use.sh` into `.claude/hooks/`
 - Creates `.claude/hooks/snowplow-config.env` from the example template (skips if already present)
 - Deep-merges the hook registration block into `.claude/settings.json` — appends to existing hooks, deduplicates on re-run, preserves all other settings
 - Copies `commands/init_with_tracking.md` to `~/.claude/commands/` (skips if already present)
 - Adds `.claude/hooks/snowplow-config.env` to `.gitignore`
 
 ```bash
-# Install into current directory
+# Global (recommended)
+bash install.sh --global
+
+# Project — current directory
 bash install.sh
 
-# Install into a specific project
+# Project — specific path
 bash install.sh /path/to/project
 ```
 
@@ -94,6 +125,7 @@ This mounts `~/.claude/agent-tracking-hooks/schemas/` into Micro and starts the 
 | `tool_input_json` | string | Input JSON — large content fields stripped, truncated to 500 chars |
 | `cwd` | string | Working directory |
 | `transcript_path` | string | Path to session transcript JSONL |
+
 ### `post_tool_use`
 
 All fields above, plus:
@@ -122,11 +154,11 @@ If `bad > 0`, the events are reaching the collector but failing schema validatio
 
 If `total` stays at 0:
 1. Confirm `jq` is installed: `which jq`
-2. Confirm `SNOWPLOW_COLLECTOR_URL` is set in `.claude/hooks/snowplow-config.env`
+2. Confirm `SNOWPLOW_COLLECTOR_URL` is set in the config file
 3. Run the hook manually to debug:
    ```bash
    echo '{"session_id":"test","tool_name":"Write","tool_input":{"file_path":"/tmp/x"},"cwd":"/tmp","transcript_path":""}' \
-     | bash -x .claude/hooks/pre-tool-use.sh
+     | bash -x ~/.claude/agent-tracking-hooks/hooks/pre-tool-use.sh
    ```
 
 ---
@@ -140,7 +172,7 @@ If `total` stays at 0:
 
 ```bash
 mkdir -p .claude/hooks
-cp hooks/pre-tool-use.sh hooks/post-tool-use.sh hooks/available-tools.json .claude/hooks/
+cp hooks/pre-tool-use.sh hooks/post-tool-use.sh .claude/hooks/
 chmod +x .claude/hooks/pre-tool-use.sh .claude/hooks/post-tool-use.sh
 ```
 
@@ -157,7 +189,7 @@ echo '.claude/hooks/snowplow-config.env' >> .gitignore
 ```json
 {
   "hooks": {
-    "PreToolUse":        [{ "matcher": "", "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pre-tool-use.sh", "async": true }] }],
+    "PreToolUse":        [{ "matcher": "", "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pre-tool-use.sh" }] }],
     "PostToolUse":       [{ "matcher": "", "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post-tool-use.sh", "async": true }] }],
     "PostToolUseFailure":[{ "matcher": "", "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post-tool-use.sh", "async": true }] }]
   }
@@ -175,7 +207,7 @@ See `hooks/settings.json.example` for the full reference.
 ```
 agent-tool-tracker/
 ├── README.md
-├── install.sh                                        # One-shot installer
+├── install.sh                                        # Installer (--global or per-project)
 ├── commands/
 │   └── init_with_tracking.md                         # /init_with_tracking slash command
 ├── hooks/
