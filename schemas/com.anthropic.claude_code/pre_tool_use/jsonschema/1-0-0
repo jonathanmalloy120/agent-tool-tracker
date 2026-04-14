@@ -39,11 +39,6 @@
       "type": "string",
       "description": "Path to the session transcript JSONL file."
     },
-    "available_tools": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "List of tool names available to Claude in this session."
-    }
   },
   "required": ["timestamp", "session_id", "tool_name", "tool_input_json", "cwd", "transcript_path"],
   "additionalProperties": false

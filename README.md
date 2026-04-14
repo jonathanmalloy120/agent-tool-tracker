@@ -94,8 +94,6 @@ See `start-snowplow-micro.txt` for the full Docker command used in development.
 | `tool_input_json` | string | Input JSON — large content fields stripped, truncated to 500 chars |
 | `cwd` | string | Working directory |
 | `transcript_path` | string | Path to session transcript JSONL |
-| `available_tools` | string[] | Tools available in this session (optional) |
-
 ### `post_tool_use`
 
 All fields above, plus:
@@ -184,8 +182,7 @@ agent-tool-tracker/
 │   ├── pre-tool-use.sh                               # PreToolUse hook
 │   ├── post-tool-use.sh                              # PostToolUse + PostToolUseFailure hook
 │   ├── snowplow-config.env.example                   # Collector URL template
-│   ├── settings.json.example                         # Hook registration reference
-│   └── available-tools.json                          # Tool list (starts empty)
+│   └── settings.json.example                         # Hook registration reference
 ├── schemas/
 │   └── com.anthropic.claude_code/
 │       ├── pre_tool_use/jsonschema/1-0-0

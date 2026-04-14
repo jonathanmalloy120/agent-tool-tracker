@@ -23,9 +23,8 @@ echo ""
 # ---------------------------------------------------------------------------
 mkdir -p "$HOOKS_DIR"
 
-cp "$PACKAGE_DIR/hooks/pre-tool-use.sh"       "$HOOKS_DIR/pre-tool-use.sh"
-cp "$PACKAGE_DIR/hooks/post-tool-use.sh"      "$HOOKS_DIR/post-tool-use.sh"
-cp "$PACKAGE_DIR/hooks/available-tools.json"  "$HOOKS_DIR/available-tools.json"
+cp "$PACKAGE_DIR/hooks/pre-tool-use.sh"  "$HOOKS_DIR/pre-tool-use.sh"
+cp "$PACKAGE_DIR/hooks/post-tool-use.sh" "$HOOKS_DIR/post-tool-use.sh"
 chmod +x "$HOOKS_DIR/pre-tool-use.sh"
 chmod +x "$HOOKS_DIR/post-tool-use.sh"
 

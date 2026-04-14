@@ -53,11 +53,6 @@
       "minimum": 0,
       "description": "Original byte length of the tool output before truncation."
     },
-    "available_tools": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "List of tool names available to Claude in this session."
-    },
     "duration_ms": {
       "type": "integer",
       "minimum": 0,

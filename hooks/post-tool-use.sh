@@ -16,7 +16,6 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="$SCRIPT_DIR/snowplow-config.env"
-TOOLS_FILE="$SCRIPT_DIR/available-tools.json"
 
 # Load collector config
 if [ -f "$CONFIG_FILE" ]; then
@@ -142,13 +141,6 @@ PYEOF
   OUTPUT_TOKENS=$(echo "$TOKEN_DATA" | jq -r '.output_tokens // ""')
 fi
 
-# --- Load available tools list ---
-if [ -f "$TOOLS_FILE" ]; then
-  AVAILABLE_TOOLS=$(cat "$TOOLS_FILE")
-else
-  AVAILABLE_TOOLS="[]"
-fi
-
 # --- Build Iglu self-describing JSON payload ---
 PAYLOAD=$(jq -n \
   --arg schema         "iglu:com.anthropic.claude_code/post_tool_use/jsonschema/1-0-0" \
@@ -159,7 +151,6 @@ PAYLOAD=$(jq -n \
   --arg tool_input     "$TOOL_INPUT_JSON" \
   --arg cwd            "$CWD" \
   --arg transcript     "$TRANSCRIPT_PATH" \
-  --argjson tools      "$AVAILABLE_TOOLS" \
   --argjson success    "$SUCCESS" \
   --arg duration       "$DURATION_MS" \
   --arg output_json    "$TOOL_OUTPUT_JSON" \
@@ -180,11 +171,10 @@ PAYLOAD=$(jq -n \
         tool_output_json:   $output_json,
         tool_output_length: ($output_length | tonumber)
       }
-      + (if $tool_use_id   != ""  then {tool_use_id:     $tool_use_id}              else {} end)
-      + (if ($tools | length) > 0 then {available_tools:  $tools}                   else {} end)
-      + (if $duration      != ""  then {duration_ms:     ($duration  | tonumber)}   else {} end)
-      + (if $input_tokens  != ""  then {input_tokens:    ($input_tokens  | tonumber)} else {} end)
-      + (if $output_tokens != ""  then {output_tokens:   ($output_tokens | tonumber)} else {} end)
+      + (if $tool_use_id  != "" then {tool_use_id:   $tool_use_id}                else {} end)
+      + (if $duration     != "" then {duration_ms:   ($duration | tonumber)}      else {} end)
+      + (if $input_tokens != "" then {input_tokens:  ($input_tokens | tonumber)}  else {} end)
+      + (if $output_tokens != "" then {output_tokens: ($output_tokens | tonumber)} else {} end)
     )
   }')
 

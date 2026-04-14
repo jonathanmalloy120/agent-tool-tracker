@@ -13,7 +13,6 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="$SCRIPT_DIR/snowplow-config.env"
-TOOLS_FILE="$SCRIPT_DIR/available-tools.json"
 
 # Load collector config
 if [ -f "$CONFIG_FILE" ]; then
@@ -68,13 +67,6 @@ echo "$START_MS" > "$TMPFILE"
 # short identifying metadata like file_path, command, pattern, description.
 TOOL_INPUT_JSON=$(echo "$TOOL_INPUT_RAW" | jq 'del(.content, .new_string, .old_string)' | head -c 500)
 
-# --- Load available tools list (populated during install) ---
-if [ -f "$TOOLS_FILE" ]; then
-  AVAILABLE_TOOLS=$(cat "$TOOLS_FILE")
-else
-  AVAILABLE_TOOLS="[]"
-fi
-
 # --- Build Iglu self-describing JSON payload ---
 PAYLOAD=$(jq -n \
   --arg schema        "iglu:com.anthropic.claude_code/pre_tool_use/jsonschema/1-0-0" \
@@ -85,7 +77,6 @@ PAYLOAD=$(jq -n \
   --arg tool_input    "$TOOL_INPUT_JSON" \
   --arg cwd           "$CWD" \
   --arg transcript    "$TRANSCRIPT_PATH" \
-  --argjson tools     "$AVAILABLE_TOOLS" \
   '{
     schema: $schema,
     data: (
@@ -97,8 +88,7 @@ PAYLOAD=$(jq -n \
         cwd:              $cwd,
         transcript_path:  $transcript
       }
-      + (if $tool_use_id != "" then {tool_use_id: $tool_use_id}   else {} end)
-      + (if ($tools | length) > 0 then {available_tools: $tools}  else {} end)
+      + (if $tool_use_id != "" then {tool_use_id: $tool_use_id} else {} end)
     )
   }')
 
