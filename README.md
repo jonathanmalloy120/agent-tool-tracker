@@ -39,7 +39,7 @@ Claude Code's hook system lets you attach shell commands to tool lifecycle event
 | `PostToolUse` | `post-tool-use.sh` | After every successful tool call |
 | `PostToolUseFailure` | `post-tool-use.sh` | After every failed tool call |
 
-Both scripts are **fire-and-forget** — they background the `curl` POST so they never block Claude.
+Both scripts run synchronously inside the hook process. Claude Code's `async: true` setting handles non-blocking execution — Claude Code fires the hook and moves on immediately without waiting for it to finish. The curl runs to completion inside the hook process, which avoids the background-process-kill issue that `&` causes on macOS when the parent exits.
 
 The pre-hook writes a start timestamp to a temp file; the post-hook reads it to calculate `duration_ms`, then deletes it.
 

@@ -108,6 +108,6 @@ curl -s --max-time 5 \
   "${SNOWPLOW_COLLECTOR_URL}/com.snowplowanalytics.iglu/v1" \
   -H "Content-Type: application/json" \
   -d "$PAYLOAD" \
-  > /dev/null 2>&1 &
+  > /dev/null 2>&1
 
 exit 0
