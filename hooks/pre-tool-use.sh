@@ -103,11 +103,11 @@ PAYLOAD=$(jq -n \
   }')
 
 # --- POST to collector (fire-and-forget, does not block Claude) ---
-curl -s --max-time 2 \
+curl -s --max-time 5 \
   -X POST \
   "${SNOWPLOW_COLLECTOR_URL}/com.snowplowanalytics.iglu/v1" \
   -H "Content-Type: application/json" \
   -d "$PAYLOAD" \
-  > /dev/null 2>&1
+  > /dev/null 2>&1 &
 
 exit 0
